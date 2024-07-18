@@ -1,22 +1,16 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-    return res.send('ok');
-});
+const multer = require('multer');
+const storage = multer.memoryStorage(); // Store files in memory
+const upload = multer({ storage: storage });
 
-router.post('/', (req, res) => {
-    return res.send('ok');
-})
+const { index, show, create, update, destroy } = require('../controller/workExperienceController');
 
-router.put('/:id', (req, res) => {
-    return res.send('ok');
-})
-
-router.delete('/:id', (req, res) => {
-    return res.send('ok');
-})
-
+router.get('/', index);
+router.get('/:id', show);
+router.post('/', upload.single('image'), create);
+router.put('/:id', upload.single('image'), update);
+router.delete('/:id', destroy);
 
 module.exports = router;

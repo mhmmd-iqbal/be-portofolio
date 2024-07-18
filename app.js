@@ -6,6 +6,8 @@ var logger = require('morgan');
 
 var portofolioRouter = require('./routes/portofolios');
 var workExperienceRouter = require('./routes/workExperiences');
+var educationController = require('./routes/educations');
+var profileController = require('./routes/profiles');
 
 var app = express();
 
@@ -21,6 +23,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/portofolio', portofolioRouter);
 app.use('/api/work-experience', workExperienceRouter);
+app.use('/api/education', educationController);
+app.use('/api/profile', profileController);
 
 // catch 404 and forward to error handler
 // app.use(function(req, res, next) {

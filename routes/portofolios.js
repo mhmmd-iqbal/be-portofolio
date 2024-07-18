@@ -1,10 +1,16 @@
 var express = require('express');
 var router = express.Router();
-const { index, create, update, destroy } = require('../controller/portofolioController');
+
+const multer = require('multer');
+const storage = multer.memoryStorage(); // Store files in memory
+const upload = multer({ storage: storage });
+
+const { index, show, create, update, destroy } = require('../controller/portofolioController');
 
 router.get('/', index);
-router.post('/', create);
-router.put('/:id', update);
+router.get('/:id', show);
+router.post('/', upload.single('image'), create);
+router.put('/:id', upload.single('image'), update);
 router.delete('/:id', destroy);
 
 module.exports = router;

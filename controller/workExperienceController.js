@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid'); // For generating unique filenames
 const index = async (req, res) => {
     try {
         const results = [];
-        const snapshot = await db.collection('portofolio').orderBy('created_at', 'desc').get();
+        const snapshot = await db.collection('workExperience').orderBy('created_at', 'desc').get();
         snapshot.forEach(doc => {
             results.push({ id: doc.id, ...doc.data() });
         });
@@ -19,7 +19,7 @@ const index = async (req, res) => {
 const show = async (req, res) => {
     try {
         const { id } = req.params;
-        const doc = await db.collection('portofolio').doc(id).get();
+        const doc = await db.collection('workExperience').doc(id).get();
         if (!doc.exists) {
             return res.status(404).send('Document not found');
         }
@@ -40,7 +40,7 @@ const create = async (req, res) => {
         const bucket = storage.bucket();
         const uuid = uuidv4(); // Generate a new UUID
         const fileExtension = req.file.originalname.split('.').pop(); // Extract the original file extension
-        const fileName = `portofolio/${uuid}.${fileExtension}`; // Combine UUID and extension for the file name
+        const fileName = `workExperience/${uuid}.${fileExtension}`; // Combine UUID and extension for the file name
         const file = bucket.file(fileName);
 
         // Upload the file to Firebase Storage
@@ -56,18 +56,20 @@ const create = async (req, res) => {
         // Get the public URL
         const imageUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
 
-        // Create the new portfolio document
-        const newPortfolio = {
+        // Create the new work experience document
+        const newWorkExperience = {
             name: req.body.name,
             description: req.body.description || null,
-            image_url: imageUrl, // Renamed field from image_link to image_url
+            position: req.body.position,
+            start_from: req.body.start_from,
+            end_to: req.body.end_to || null,
+            image_url: imageUrl,
             created_at: moment().toDate(),
             updated_at: moment().toDate(),
             deleted_at: null,
-            stacks: JSON.stringify(req.body.stacks) || [], // JSON encode the stacks field
         };
 
-        const docRef = await db.collection('portofolio').add(newPortfolio);
+        const docRef = await db.collection('workExperience').add(newWorkExperience);
         res.status(201).json({ id: docRef.id });
     } catch (error) {
         console.error(error);
@@ -80,7 +82,7 @@ const update = async (req, res) => {
         const { id } = req.params;
 
         // Fetch the existing document
-        const doc = await db.collection('portofolio').doc(id).get();
+        const doc = await db.collection('workExperience').doc(id).get();
         if (!doc.exists) {
             return res.status(404).send('Document not found');
         }
@@ -89,8 +91,10 @@ const update = async (req, res) => {
         const updatedData = {
             name: req.body.name || doc.data().name,
             description: req.body.description || doc.data().description,
+            position: req.body.position || doc.data().position,
+            start_from: req.body.start_from || doc.data().start_from,
+            end_to: req.body.end_to || doc.data().end_to,
             updated_at: moment().toDate(),
-            stacks: JSON.stringify(req.body.stacks) || doc.data().stacks, // JSON encode the stacks field
         };
 
         // Check if a new file is provided
@@ -98,7 +102,7 @@ const update = async (req, res) => {
             const bucket = storage.bucket();
             const uuid = uuidv4(); // Generate a new UUID
             const fileExtension = req.file.originalname.split('.').pop(); // Extract the original file extension
-            const fileName = `portofolio/${uuid}.${fileExtension}`; // Combine UUID and extension for the file name
+            const fileName = `workExperience/${uuid}.${fileExtension}`; // Combine UUID and extension for the file name
             const file = bucket.file(fileName);
 
             // Upload the file to Firebase Storage
@@ -116,7 +120,7 @@ const update = async (req, res) => {
             updatedData.image_url = imageUrl; // Update the image URL
         }
 
-        await db.collection('portofolio').doc(id).update(updatedData);
+        await db.collection('workExperience').doc(id).update(updatedData);
         res.status(200).send('Document successfully updated');
     } catch (error) {
         console.error(error);
@@ -129,17 +133,17 @@ const destroy = async (req, res) => {
         const { id } = req.params;
 
         // Fetch the existing document
-        const doc = await db.collection('portofolio').doc(id).get();
+        const doc = await db.collection('workExperience').doc(id).get();
         if (!doc.exists) {
             return res.status(404).send('Document not found');
         }
 
         // Delete the document
-        await db.collection('portofolio').doc(id).delete();
+        await db.collection('workExperience').doc(id).delete();
 
         // Optionally delete the file from storage (if you stored the file name/path in the document)
         const fileName = doc.data().image_url.split('/').pop();
-        const file = storage.bucket().file(`portofolio/${fileName}`);
+        const file = storage.bucket().file(`workExperience/${fileName}`);
         await file.delete();
 
         res.status(200).send('Document successfully deleted');
